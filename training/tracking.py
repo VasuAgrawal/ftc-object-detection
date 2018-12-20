@@ -126,7 +126,8 @@ def verify_bboxes(frame, bboxes, classes, yes):
 
     frame_to_draw = frame.copy()
     drawing_utils.draw_bboxes(frame_to_draw, bboxes, classes, args.scale)
-    shadow_text(frame_to_draw, "Do boxes look okay (y/n)?", (100, 80))
+    drawing_utils.shadow_text(frame_to_draw, "Do boxes look okay (y/n)?", 
+            (100, 80))
     show_scaled(window, frame_to_draw)
 
     if yes:
@@ -402,20 +403,6 @@ def refine_bboxes(bboxes, classes, frame, trackers):
         print("new scaled bbox", bboxes[i])
 
 
-def shadow_text(frame, text, loc):
-    shadow_color = (0, 0, 0)
-    shadow_loc = tuple(np.array(loc) + 2)
-    font_color = (255, 255, 255)
-    font_weight = 2
-    font_scale = 0.75
-    font_type = cv2.FONT_HERSHEY_SIMPLEX
-
-    cv2.putText(frame, text, shadow_loc, font_type, font_scale, shadow_color,
-            font_weight)
-    cv2.putText(frame, text, loc, font_type, font_scale, font_color,
-            font_weight)
-
-
 def scale_bboxes_for_tracking(bboxes):
     sf = args.decimate
     scaled_bboxes = [tuple(np.array(bbox) * sf) for bbox in bboxes]
@@ -514,9 +501,10 @@ if __name__ == "__main__":
         if args.frames > 0 and frame_count % args.frames == 0:
             save_frame(original, frame, bboxes, classes, run_path, frame_count)
 
-        shadow_text(frame, tracker_name, (100, 20))
-        shadow_text(frame, "FPS: " + str(int(fps)), (100, 50))
-        shadow_text(frame, "Frame: " + str(frame_count), (100, 80))
+        drawing_utils.shadow_text(frame, tracker_name, (100, 20))
+        drawing_utils.shadow_text(frame, "FPS: " + str(int(fps)), (100, 50))
+        drawing_utils.shadow_text(frame, "Frame: " + str(frame_count), 
+                (100, 80))
 
         # Display result
         show_scaled(window, frame)

@@ -72,3 +72,17 @@ def draw_dots(frame, bboxes):
                     thickness=-1)
             cv2.circle(frame, tuple(p1.astype(int)), 10, node_color,
                     thickness=-1)
+
+
+def shadow_text(frame, text, loc):
+    shadow_color = (0, 0, 0)
+    shadow_loc = tuple(np.array(loc) + 2)
+    font_color = (255, 255, 255)
+    font_weight = 2
+    font_scale = 0.75
+    font_type = cv2.FONT_HERSHEY_SIMPLEX
+
+    cv2.putText(frame, text, shadow_loc, font_type, font_scale, shadow_color,
+            font_weight)
+    cv2.putText(frame, text, loc, font_type, font_scale, font_color,
+            font_weight)

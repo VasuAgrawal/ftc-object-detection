@@ -26,7 +26,7 @@ def load_image_into_numpy_array(image):
       (im_height, im_width, 3)).astype(np.uint8)
 
 class ObjectDetector:
-  def __init__(self, path_to_ckpt, path_to_labels, num_classes):
+  def __init__(self, path_to_ckpt, path_to_labels):
     self.detection_graph = tf.Graph()
     with self.detection_graph.as_default():
       od_graph_def = tf.GraphDef()
@@ -37,7 +37,7 @@ class ObjectDetector:
 
     label_map = label_map_util.load_labelmap(path_to_labels)
     categories = label_map_util.convert_label_map_to_categories(label_map,
-            max_num_classes=num_classes, use_display_name=True)
+            max_num_classes=len(label_map.item), use_display_name=True)
     category_index = label_map_util.create_category_index(categories)
 
     with self.detection_graph.as_default():

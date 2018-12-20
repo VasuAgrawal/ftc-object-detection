@@ -22,6 +22,7 @@ import errno
 import sys
 from object_detector import ObjectDetector as TFObjectDetector
 from object_detector_lite import ObjectDetector as LiteObjectDetector
+import drawing_utils
 import cv2
 
 description_text = """\
@@ -58,8 +59,6 @@ parser.add_argument("--path_to_model", type=str,
 parser.add_argument("--path_to_labels", type=str,
         default="train_data/label.pbtxt",
         help="Text proto (TF) or text (tflite) file containing label map")
-parser.add_argument("--num_classes", type=int, default=2,
-        help="Number of classes")
 parser.add_argument("--threshold", type=float, default=0.6,
         help="Threshold for displaying detections")
 parser.add_argument("--box_priors", type=str,
@@ -82,9 +81,7 @@ height = int(cam.get(cv2.CAP_PROP_FRAME_HEIGHT))
 if args.tflite:
     objdet = LiteObjectDetector(args.path_to_model, args.path_to_labels,
                                 args.box_priors)
-else:
-    objdet = TFObjectDetector(args.path_to_model, args.path_to_labels,
-                              args.num_classes)
+else:    objdet = TFObjectDetector(args.path_to_model, args.path_to_labels)
 
 movie_name = os.path.splitext(os.path.basename(args.movie))[0]
 
@@ -138,13 +135,15 @@ while ret == True:
                 x1, y1, x2, y2 = y1, x1, y2, x2
             boxes.append((class_, score, x1, y1, x2, y2))
 
-    for box in boxes:
-        class_, score, x1, y1, x2, y2 = box
-        w1 = x2-x1
-        h1 = y2-y1
-        cv2.rectangle(img, (x1, y1), (x2, y2), (255,0,0), 2)
-        cv2.putText(img, "%s: %5.2f" % (class_-1, score), (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 2)
+    bboxes = [np.array([x1, y1, x2-x1, y2-y1]) for
+                (cls, score, x1, y1, x2, y2) in boxes]
+    if args.tflite:
+        classes = ["Index: %d" % cls for cls, *_ in boxes]
+    else:
+        classes = [objdet.category_index[int(cls)]['name'] for cls, *_ in boxes]
+    drawing_utils.draw_bboxes(img, bboxes, classes)
 
+    print("Frame:", counter, end="\r")
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     cv2.imshow('image', img)
     if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -159,6 +158,7 @@ while ret == True:
         cv2.imwrite(os.path.join(images_dir, "box_%05d.png" % counter), img)
     counter += 1
     ret, frame = cam.read()
+    print("Done!")
 
 if args.write_movie:
     writer.release()
