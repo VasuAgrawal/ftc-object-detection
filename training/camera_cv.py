@@ -64,6 +64,8 @@ parser.add_argument("--threshold", type=float, default=0.6,
 parser.add_argument("--box_priors", type=str,
                     default="box_priors.txt",
         help="Path to box_priors.txt file containing priors (only required for TFLite)")
+parser.add_argument("--headless", default=False, action="store_true",
+        help="Don't display anything when running script")
 args = parser.parse_args()
 
 if args.movie is not "" and not os.path.exists(args.movie):
@@ -145,9 +147,12 @@ while ret == True:
 
     print("Frame:", counter, end="\r")
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    cv2.imshow('image', img)
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-      break
+
+    if not args.headless:
+        cv2.imshow('image', img)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
     if args.write_movie:
         writer.write(img)
 
@@ -158,7 +163,8 @@ while ret == True:
         cv2.imwrite(os.path.join(images_dir, "box_%05d.png" % counter), img)
     counter += 1
     ret, frame = cam.read()
-    print("Done!")
+
+print("Done!")
 
 if args.write_movie:
     writer.release()
